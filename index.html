@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电泳胶孔标记工具 Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        canvas { 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .tool-btn {
+            transition: all 0.15s ease-in-out;
+        }
+        .tool-btn.active {
+            background-color: #eff6ff; /* blue-50 */
+            border-color: #3b82f6; /* blue-500 */
+            color: #2563eb; /* blue-600 */
+        }
+        .color-btn {
+            transition: transform 0.1s;
+        }
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+        .color-btn.active {
+            ring-width: 2px;
+            ring-color: #3b82f6;
+            ring-offset-width: 2px;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-slate-100 h-screen flex flex-col overflow-hidden text-slate-800">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shrink-0 z-20 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-2 rounded-lg text-white shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+            </div>
+            <h1 class="text-lg font-bold text-slate-800 tracking-tight">Gel Labeler <span class="text-blue-600">Pro</span></h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <!-- Language Toggle -->
+            <button onclick="app.toggleLanguage()" class="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-all border border-slate-200">
+                <span id="lang-toggle-text">EN</span>
+            </button>
+
+            <!-- File Operations -->
+            <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                <button onclick="document.getElementById('imageInput').click()" class="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-white rounded-md transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span data-i18n="openImage">打开图片</span>
+                </button>
+                <div class="w-px bg-slate-300 my-1 mx-1"></div>
+                <button onclick="document.getElementById('projectInput').click()" class="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-white rounded-md transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    <span data-i18n="loadProject">加载工程</span>
+                </button>
+                <button onclick="app.saveProject()" class="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-white rounded-md transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    <span data-i18n="saveProject">保存工程</span>
+                </button>
+            </div>
+
+            <button onclick="app.exportImage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center gap-2 ml-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span data-i18n="exportResult">导出结果</span>
+            </button>
+        </div>
+
+        <!-- Hidden Inputs -->
+        <input type="file" id="imageInput" accept="image/*" class="hidden">
+        <input type="file" id="projectInput" accept=".json" class="hidden">
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Left Sidebar: Tools & Settings -->
+        <aside class="w-72 bg-white border-r border-slate-200 flex flex-col z-10 overflow-y-auto">
+            
+            <!-- History Controls -->
+            <div class="p-4 border-b border-slate-100 grid grid-cols-2 gap-2">
+                <button onclick="app.undo()" id="btn-undo" class="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-md text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                    <span data-i18n="undo">撤销</span>
+                </button>
+                <button onclick="app.redo()" id="btn-redo" class="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-md text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"></path></svg>
+                    <span data-i18n="redo">重做</span>
+                </button>
+            </div>
+
+            <!-- Tools Section -->
+            <div class="p-4 border-b border-slate-100">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3" data-i18n="toolsTitle">标记工具</h3>
+                <div class="space-y-2">
+                    <button onclick="app.setTool('manual')" id="tool-manual" class="tool-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-slate-50 text-left group">
+                        <span class="bg-indigo-50 text-indigo-600 p-1.5 rounded group-hover:bg-indigo-100 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                        </span>
+                        <div>
+                            <div class="text-sm font-medium text-slate-700 group-hover:text-slate-900" data-i18n="toolManual">单点标记</div>
+                            <div class="text-[10px] text-slate-400"><span data-i18n="shortcut">快捷键</span>: 1</div>
+                        </div>
+                    </button>
+
+                    <button onclick="app.setTool('row')" id="tool-row" class="tool-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-slate-50 text-left group">
+                        <span class="bg-emerald-50 text-emerald-600 p-1.5 rounded group-hover:bg-emerald-100 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        </span>
+                        <div>
+                            <div class="text-sm font-medium text-slate-700 group-hover:text-slate-900" data-i18n="toolRow">批量行生成</div>
+                            <div class="text-[10px] text-slate-400"><span data-i18n="shortcut">快捷键</span>: 2</div>
+                        </div>
+                    </button>
+
+                    <button onclick="app.setTool('move')" id="tool-move" class="tool-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-slate-50 text-left group">
+                        <span class="bg-amber-50 text-amber-600 p-1.5 rounded group-hover:bg-amber-100 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                        </span>
+                        <div>
+                            <div class="text-sm font-medium text-slate-700 group-hover:text-slate-900" data-i18n="toolMove">移动调整</div>
+                            <div class="text-[10px] text-slate-400"><span data-i18n="shortcut">快捷键</span>: 3</div>
+                        </div>
+                    </button>
+
+                    <button onclick="app.setTool('delete')" id="tool-delete" class="tool-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-slate-50 text-left group">
+                        <span class="bg-red-50 text-red-600 p-1.5 rounded group-hover:bg-red-100 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </span>
+                        <div>
+                            <div class="text-sm font-medium text-slate-700 group-hover:text-slate-900" data-i18n="toolDelete">删除标记</div>
+                            <div class="text-[10px] text-slate-400"><span data-i18n="shortcut">快捷键</span>: 4</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="p-4 space-y-5">
+                <!-- Zoom Control -->
+                <div>
+                    <div class="flex justify-between mb-1.5">
+                        <label class="block text-xs font-medium text-slate-600" data-i18n="zoom">视图缩放</label>
+                        <span id="zoomDisplay" class="text-xs text-slate-400">100%</span>
+                    </div>
+                    <input type="range" id="zoomLevel" min="10" max="300" value="100" step="5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                </div>
+
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider" data-i18n="styleSettings">样式设置</h3>
+                
+                <!-- Next Number -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1.5" data-i18n="startNumber">起始编号</label>
+                    <div class="flex items-center">
+                        <input type="number" id="nextNumber" value="1" min="1" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border">
+                    </div>
+                </div>
+
+                <!-- Font Style -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1.5" data-i18n="fontStyle">字体风格</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="app.setFont('hand')" id="font-hand" class="px-3 py-2 border rounded-md text-sm text-center hover:bg-slate-50 transition-colors font-['Patrick_Hand']" data-i18n="fontHand">手写体</button>
+                        <button onclick="app.setFont('std')" id="font-std" class="px-3 py-2 border rounded-md text-sm text-center hover:bg-slate-50 transition-colors font-sans" data-i18n="fontStd">标准体</button>
+                    </div>
+                </div>
+
+                <!-- Color Picker -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-2" data-i18n="labelColor">标记颜色</label>
+                    <div class="flex gap-3">
+                        <button onclick="app.setColor('#ffffff')" class="color-btn w-8 h-8 rounded-full bg-white border border-slate-200 shadow-sm ring-offset-2 ring-blue-500" data-color="#ffffff" title="白色"></button>
+                        <button onclick="app.setColor('#ef4444')" class="color-btn w-8 h-8 rounded-full bg-red-500 shadow-sm ring-offset-2 ring-blue-500" data-color="#ef4444" title="红色"></button>
+                        <button onclick="app.setColor('#000000')" class="color-btn w-8 h-8 rounded-full bg-black shadow-sm ring-offset-2 ring-blue-500" data-color="#000000" title="黑色"></button>
+                        <button onclick="app.setColor('#fbbf24')" class="color-btn w-8 h-8 rounded-full bg-amber-400 shadow-sm ring-offset-2 ring-blue-500" data-color="#fbbf24" title="黄色"></button>
+                    </div>
+                </div>
+
+                <!-- Font Size -->
+                <div>
+                    <div class="flex justify-between mb-1.5">
+                        <label class="block text-xs font-medium text-slate-600" data-i18n="fontSize">字体大小</label>
+                        <span id="fontSizeDisplay" class="text-xs text-slate-400">16px</span>
+                    </div>
+                    <input type="range" id="fontSize" min="10" max="60" value="16" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                </div>
+            </div>
+
+            <div class="mt-auto p-4 border-t border-slate-200">
+                <button onclick="app.clearAll()" class="w-full flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <span data-i18n="clearAll">清空所有标记</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Canvas Area -->
+        <main class="flex-1 bg-slate-100 relative overflow-hidden flex flex-col">
+            <!-- Canvas Container (Scrollable) -->
+            <div id="canvasWrapper" class="flex-1 overflow-auto flex items-center justify-center p-8 relative">
+                
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center max-w-md mx-auto">
+                    <div class="bg-white p-10 rounded-2xl shadow-sm border border-slate-200">
+                        <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-900 mb-2" data-i18n="emptyTitle">开始您的标记工作</h2>
+                        <p class="text-slate-500 mb-8" data-i18n="emptyDesc">请上传电泳胶图片，支持 JPG, PNG 格式</p>
+                        <button onclick="document.getElementById('imageInput').click()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-blue-200 transition-all transform hover:-translate-y-0.5">
+                            <span data-i18n="selectImage">选择图片文件</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas -->
+                <canvas id="mainCanvas" class="hidden bg-white"></canvas>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="bg-white border-t border-slate-200 px-4 py-2 text-xs text-slate-500 flex justify-between shrink-0">
+                <span id="statusText" data-i18n="statusReady">就绪</span>
+                <span id="coordsText"></span>
+            </div>
+        </main>
+    </div>
+
+    <!-- Row Generation Modal -->
+    <div id="rowModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-80 transform transition-all scale-100">
+            <h3 class="text-lg font-bold text-slate-900 mb-4" data-i18n="rowModalTitle">批量生成行标记</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1" data-i18n="rowModalCount">孔数量</label>
+                    <input type="number" id="rowModalCount" value="10" min="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                     <label class="block text-sm font-medium text-slate-700 mb-1" data-i18n="rowModalStart">起始编号</label>
+                    <input type="number" id="rowModalStart" value="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button onclick="app.cancelRow()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium text-sm" data-i18n="cancel">取消</button>
+                <button onclick="app.confirmRow()" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium text-sm shadow-sm" data-i18n="confirm">生成标记</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Gel Labeler Pro - Core Application Logic
+         */
+        class GelLabeler {
+            constructor() {
+                // State
+                this.labels = [];
+                this.history = [];
+                this.historyIndex = -1;
+                this.img = null;
+                this.scale = 1;
+                this.zoomLevel = 100;
+                
+                // Settings
+                this.currentTool = 'manual'; // manual, row, move, delete
+                this.currentColor = '#ffffff'; // Default White
+                this.currentFont = 'hand'; // hand, std
+                this.fontSize = 16;
+                this.currentLang = 'zh'; // zh, en
+                
+                // Interaction State
+                this.isDragging = false;
+                this.draggedIndex = -1;
+                this.rowStart = null;
+                this.mousePos = { x: 0, y: 0 };
+
+                // Translations
+                this.translations = {
+                    zh: {
+                        openImage: "打开图片",
+                        loadProject: "加载工程",
+                        saveProject: "保存工程",
+                        exportResult: "导出结果",
+                        undo: "撤销",
+                        redo: "重做",
+                        toolsTitle: "标记工具",
+                        toolManual: "单点标记",
+                        toolRow: "批量行生成",
+                        toolMove: "移动调整",
+                        toolDelete: "删除标记",
+                        shortcut: "快捷键",
+                        zoom: "视图缩放",
+                        styleSettings: "样式设置",
+                        startNumber: "起始编号",
+                        fontStyle: "字体风格",
+                        fontHand: "手写体",
+                        fontStd: "标准体",
+                        labelColor: "标记颜色",
+                        fontSize: "字体大小",
+                        clearAll: "清空所有标记",
+                        emptyTitle: "开始您的标记工作",
+                        emptyDesc: "请上传电泳胶图片，支持 JPG, PNG 格式",
+                        selectImage: "选择图片文件",
+                        statusReady: "就绪",
+                        rowModalTitle: "批量生成行标记",
+                        rowModalCount: "孔数量",
+                        rowModalStart: "起始编号",
+                        cancel: "取消",
+                        confirm: "生成标记",
+                        imageLoaded: "图片已加载",
+                        currentMode: "当前模式",
+                        confirmClear: "确定要清空所有标记吗？此操作可撤销。",
+                        projectLoaded: "项目数据已加载。请确保已加载对应的底图。",
+                        fileError: "文件格式错误"
+                    },
+                    en: {
+                        openImage: "Open Image",
+                        loadProject: "Load Project",
+                        saveProject: "Save Project",
+                        exportResult: "Export Result",
+                        undo: "Undo",
+                        redo: "Redo",
+                        toolsTitle: "Tools",
+                        toolManual: "Manual Label",
+                        toolRow: "Batch Row",
+                        toolMove: "Move / Adjust",
+                        toolDelete: "Delete Label",
+                        shortcut: "Shortcut",
+                        zoom: "Zoom",
+                        styleSettings: "Style Settings",
+                        startNumber: "Start Number",
+                        fontStyle: "Font Style",
+                        fontHand: "Handwritten",
+                        fontStd: "Standard",
+                        labelColor: "Label Color",
+                        fontSize: "Font Size",
+                        clearAll: "Clear All Labels",
+                        emptyTitle: "Start Labeling",
+                        emptyDesc: "Upload gel image (JPG, PNG)",
+                        selectImage: "Select Image",
+                        statusReady: "Ready",
+                        rowModalTitle: "Batch Row Generation",
+                        rowModalCount: "Well Count",
+                        rowModalStart: "Start Number",
+                        cancel: "Cancel",
+                        confirm: "Generate",
+                        imageLoaded: "Image Loaded",
+                        currentMode: "Current Mode",
+                        confirmClear: "Are you sure you want to clear all labels? This can be undone.",
+                        projectLoaded: "Project loaded. Please ensure the correct base image is loaded.",
+                        fileError: "File format error"
+                    }
+                };
+
+                // DOM Elements
+                this.canvas = document.getElementById('mainCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.container = document.getElementById('canvasWrapper');
+                this.emptyState = document.getElementById('emptyState');
+                this.statusText = document.getElementById('statusText');
+                this.coordsText = document.getElementById('coordsText');
+                
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.updateUI();
+                this.updateUndoRedo();
+                this.updateLanguage();
+            }
+
+            toggleLanguage() {
+                this.currentLang = this.currentLang === 'zh' ? 'en' : 'zh';
+                this.updateLanguage();
+            }
+
+            updateLanguage() {
+                const t = this.translations[this.currentLang];
+                document.getElementById('lang-toggle-text').textContent = this.currentLang === 'zh' ? 'EN' : '中文';
+                
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (t[key]) el.textContent = t[key];
+                });
+
+                // Update status text if needed
+                if (this.img) {
+                    this.statusText.textContent = `${t.imageLoaded}: ${this.img.width} x ${this.img.height}`;
+                } else {
+                    this.statusText.textContent = t.statusReady;
+                }
+            }
+
+            bindEvents() {
+                // File Inputs
+                document.getElementById('imageInput').addEventListener('change', (e) => this.handleImageUpload(e));
+                document.getElementById('projectInput').addEventListener('change', (e) => this.loadProject(e));
+                
+                // Zoom
+                document.getElementById('zoomLevel').addEventListener('input', (e) => {
+                    this.setZoom(parseInt(e.target.value));
+                });
+                
+                // Canvas Interactions
+                this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                window.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+                
+                // Settings Inputs
+                document.getElementById('nextNumber').addEventListener('change', (e) => {
+                    if(e.target.value < 1) e.target.value = 1;
+                });
+                
+                document.getElementById('fontSize').addEventListener('input', (e) => {
+                    this.fontSize = parseInt(e.target.value);
+                    document.getElementById('fontSizeDisplay').textContent = this.fontSize + 'px';
+                    this.render();
+                });
+
+                // Keyboard Shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        if (this.currentTool === 'row' && this.rowStart) {
+                            this.rowStart = null;
+                            this.render();
+                        }
+                        return;
+                    }
+
+                    if (e.target.tagName === 'INPUT') return;
+                    
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                        e.preventDefault();
+                        if (e.shiftKey) this.redo();
+                        else this.undo();
+                    } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                        e.preventDefault();
+                        this.redo();
+                    }
+                    
+                    switch(e.key) {
+                        case '1': this.setTool('manual'); break;
+                        case '2': this.setTool('row'); break;
+                        case '3': this.setTool('move'); break;
+                        case '4': this.setTool('delete'); break;
+                    }
+                });
+            }
+
+            // --- File Handling ---
+
+            handleImageUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    this.img = new Image();
+                    this.img.onload = () => {
+                        this.canvas.width = this.img.width;
+                        this.canvas.height = this.img.height;
+                        this.canvas.classList.remove('hidden');
+                        this.emptyState.classList.add('hidden');
+                        
+                        // Reset state for new image
+                        this.labels = [];
+                        this.history = [];
+                        this.historyIndex = -1;
+                        this.saveState(); // Initial state
+                        
+                        this.fitCanvas();
+                        this.render();
+                        const t = this.translations[this.currentLang];
+                        this.statusText.textContent = `${t.imageLoaded}: ${this.img.width} x ${this.img.height}`;
+                    };
+                    this.img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+                e.target.value = ''; // Reset input
+            }
+
+            fitCanvas() {
+                if (!this.img) return;
+                const containerWidth = this.container.clientWidth - 64; // padding
+                const containerHeight = this.container.clientHeight - 64;
+                
+                const scaleX = containerWidth / this.img.width;
+                const scaleY = containerHeight / this.img.height;
+                
+                let scale = Math.min(scaleX, scaleY);
+                if (scale > 1) scale = 1; // Don't upscale by default
+                
+                this.setZoom(Math.floor(scale * 100));
+            }
+
+            setZoom(level) {
+                this.zoomLevel = level;
+                const slider = document.getElementById('zoomLevel');
+                if (slider) slider.value = level;
+                const display = document.getElementById('zoomDisplay');
+                if (display) display.textContent = level + '%';
+                
+                if (this.canvas && this.img) {
+                    this.canvas.style.width = (this.img.width * level / 100) + 'px';
+                    this.canvas.style.height = (this.img.height * level / 100) + 'px';
+                }
+            }
+
+            // --- Rendering ---
+
+            render() {
+                if (!this.img) return;
+
+                // Clear
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw Image
+                this.ctx.drawImage(this.img, 0, 0);
+
+                // Setup Font
+                const fontFamily = this.currentFont === 'hand' ? '"Patrick Hand", cursive' : '"Inter", sans-serif';
+                this.ctx.font = `bold ${this.fontSize}px ${fontFamily}`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+
+                // Draw Labels
+                this.labels.forEach(l => {
+                    const x = l.x;
+                    const y = l.y;
+                    
+                    // Shadow/Glow for visibility
+                    this.ctx.shadowColor = "rgba(0,0,0,0.8)";
+                    this.ctx.shadowBlur = 4;
+                    this.ctx.shadowOffsetX = 0;
+                    this.ctx.shadowOffsetY = 1;
+
+                    // Stroke (Outline)
+                    this.ctx.lineWidth = 3;
+                    this.ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+                    this.ctx.strokeText(l.text, x, y);
+
+                    // Fill
+                    this.ctx.fillStyle = l.color;
+                    this.ctx.fillText(l.text, x, y);
+                    
+                    // Reset shadow for next op
+                    this.ctx.shadowColor = "transparent";
+                });
+
+                // Draw Tool Previews
+                if (this.currentTool === 'row' && this.rowStart) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.rowStart.x, this.rowStart.y);
+                    this.ctx.lineTo(this.mousePos.x, this.mousePos.y);
+                    this.ctx.strokeStyle = this.currentColor;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.setLineDash([5, 5]);
+                    this.ctx.stroke();
+                    this.ctx.setLineDash([]);
+                    
+                    // Draw start dot
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.rowStart.x, this.rowStart.y, 4, 0, Math.PI * 2);
+                    this.ctx.fillStyle = this.currentColor;
+                    this.ctx.fill();
+                }
+            }
+
+            // --- Interaction Logic ---
+
+            getMousePos(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const scaleX = this.canvas.width / rect.width;
+                const scaleY = this.canvas.height / rect.height;
+                return {
+                    x: (e.clientX - rect.left) * scaleX,
+                    y: (e.clientY - rect.top) * scaleY
+                };
+            }
+
+            handleMouseDown(e) {
+                if (!this.img) return;
+                const pos = this.getMousePos(e);
+                
+                if (this.currentTool === 'manual') {
+                    this.addLabel(pos.x, pos.y);
+                } else if (this.currentTool === 'row') {
+                    if (!this.rowStart) {
+                        this.rowStart = pos;
+                    } else {
+                        this.openRowModal(this.rowStart, pos);
+                        this.rowStart = null;
+                    }
+                    this.render();
+                } else if (this.currentTool === 'move') {
+                    const idx = this.findLabelAt(pos);
+                    if (idx !== -1) {
+                        this.isDragging = true;
+                        this.draggedIndex = idx;
+                        this.canvas.style.cursor = 'grabbing';
+                    }
+                } else if (this.currentTool === 'delete') {
+                    const idx = this.findLabelAt(pos);
+                    if (idx !== -1) {
+                        this.labels.splice(idx, 1);
+                        this.saveState();
+                        this.render();
+                    }
+                }
+            }
+
+            handleMouseMove(e) {
+                if (!this.img) return;
+                this.mousePos = this.getMousePos(e);
+                this.coordsText.textContent = `X: ${Math.round(this.mousePos.x)}, Y: ${Math.round(this.mousePos.y)}`;
+
+                if (this.currentTool === 'move' && this.isDragging && this.draggedIndex !== -1) {
+                    this.labels[this.draggedIndex].x = this.mousePos.x;
+                    this.labels[this.draggedIndex].y = this.mousePos.y;
+                    this.render();
+                } else if (this.currentTool === 'row' && this.rowStart) {
+                    this.render();
+                }
+            }
+
+            handleMouseUp(e) {
+                if (this.isDragging) {
+                    this.isDragging = false;
+                    this.draggedIndex = -1;
+                    this.canvas.style.cursor = 'crosshair';
+                    this.saveState();
+                }
+            }
+
+            // --- Core Actions ---
+
+            addLabel(x, y, text = null) {
+                const input = document.getElementById('nextNumber');
+                const val = text !== null ? text : input.value;
+                
+                this.labels.push({
+                    x: x,
+                    y: y,
+                    text: val.toString(),
+                    color: this.currentColor
+                });
+
+                if (text === null) {
+                    // Auto increment
+                    input.value = parseInt(val) + 1;
+                }
+                
+                this.saveState();
+                this.render();
+            }
+
+            findLabelAt(pos) {
+                // Hit detection radius scales slightly with font size
+                const radius = this.fontSize * 1.5; 
+                // Search backwards to hit top-most label first
+                for (let i = this.labels.length - 1; i >= 0; i--) {
+                    const l = this.labels[i];
+                    const dist = Math.sqrt(Math.pow(l.x - pos.x, 2) + Math.pow(l.y - pos.y, 2));
+                    if (dist < radius) return i;
+                }
+                return -1;
+            }
+
+            // --- Row Tool ---
+            
+            openRowModal(start, end) {
+                this.pendingRow = { start, end };
+                const modal = document.getElementById('rowModal');
+                const input = document.getElementById('nextNumber');
+                
+                document.getElementById('rowModalStart').value = input.value;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.getElementById('rowModalCount').focus();
+            }
+
+            confirmRow() {
+                const count = parseInt(document.getElementById('rowModalCount').value);
+                const startNum = parseInt(document.getElementById('rowModalStart').value);
+                const { start, end } = this.pendingRow;
+
+                if (count > 1) {
+                    const dx = (end.x - start.x) / (count - 1);
+                    const dy = (end.y - start.y) / (count - 1);
+
+                    for (let i = 0; i < count; i++) {
+                        this.labels.push({
+                            x: start.x + (dx * i),
+                            y: start.y + (dy * i),
+                            text: (startNum + i).toString(),
+                            color: this.currentColor
+                        });
+                    }
+                    
+                    document.getElementById('nextNumber').value = startNum + count;
+                    this.saveState();
+                    this.render();
+                }
+                this.cancelRow();
+            }
+
+            cancelRow() {
+                document.getElementById('rowModal').classList.add('hidden');
+                document.getElementById('rowModal').classList.remove('flex');
+                this.pendingRow = null;
+            }
+
+            // --- State Management ---
+
+            setTool(tool) {
+                this.currentTool = tool;
+                this.rowStart = null;
+                this.updateUI();
+                const t = this.translations[this.currentLang];
+                this.statusText.textContent = `${t.currentMode}: ${this.getToolName(tool)}`;
+            }
+
+            getToolName(t) {
+                const map = { 
+                    'manual': 'toolManual', 
+                    'row': 'toolRow', 
+                    'move': 'toolMove', 
+                    'delete': 'toolDelete' 
+                };
+                const key = map[t];
+                return key ? this.translations[this.currentLang][key] : t;
+            }
+
+            setColor(hex) {
+                this.currentColor = hex;
+                this.updateUI();
+            }
+
+            setFont(type) {
+                this.currentFont = type;
+                this.updateUI();
+                this.render();
+            }
+
+            clearAll() {
+                const t = this.translations[this.currentLang];
+                if (confirm(t.confirmClear)) {
+                    this.labels = [];
+                    document.getElementById('nextNumber').value = 1;
+                    this.saveState();
+                    this.render();
+                }
+            }
+
+            updateUI() {
+                // Tools
+                document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active', 'bg-blue-50', 'border-blue-500'));
+                const activeToolBtn = document.getElementById('tool-' + this.currentTool);
+                if (activeToolBtn) activeToolBtn.classList.add('active');
+
+                // Colors
+                document.querySelectorAll('.color-btn').forEach(btn => {
+                    if (btn.dataset.color === this.currentColor) {
+                        btn.classList.add('ring-2');
+                    } else {
+                        btn.classList.remove('ring-2');
+                    }
+                });
+
+                // Fonts
+                document.getElementById('font-hand').className = `px-3 py-2 border rounded-md text-sm text-center transition-colors font-['Patrick_Hand'] ${this.currentFont === 'hand' ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-slate-50 text-slate-700'}`;
+                document.getElementById('font-std').className = `px-3 py-2 border rounded-md text-sm text-center transition-colors font-sans ${this.currentFont === 'std' ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-slate-50 text-slate-700'}`;
+            }
+
+            // --- History (Undo/Redo) ---
+
+            saveState() {
+                // Truncate future
+                if (this.historyIndex < this.history.length - 1) {
+                    this.history = this.history.slice(0, this.historyIndex + 1);
+                }
+                
+                const state = {
+                    labels: JSON.parse(JSON.stringify(this.labels)),
+                    nextNum: document.getElementById('nextNumber').value
+                };
+                
+                this.history.push(state);
+                this.historyIndex++;
+                this.updateUndoRedo();
+            }
+
+            undo() {
+                if (this.historyIndex > 0) {
+                    this.historyIndex--;
+                    this.restoreState(this.history[this.historyIndex]);
+                }
+            }
+
+            redo() {
+                if (this.historyIndex < this.history.length - 1) {
+                    this.historyIndex++;
+                    this.restoreState(this.history[this.historyIndex]);
+                }
+            }
+
+            restoreState(state) {
+                this.labels = JSON.parse(JSON.stringify(state.labels));
+                document.getElementById('nextNumber').value = state.nextNum;
+                this.render();
+                this.updateUndoRedo();
+            }
+
+            updateUndoRedo() {
+                document.getElementById('btn-undo').disabled = this.historyIndex <= 0;
+                document.getElementById('btn-redo').disabled = this.historyIndex >= this.history.length - 1;
+            }
+
+            // --- Import/Export ---
+
+            saveProject() {
+                if (!this.labels.length && !this.img) return;
+                const data = {
+                    version: 1,
+                    labels: this.labels,
+                    nextNum: document.getElementById('nextNumber').value,
+                    fontSize: this.fontSize,
+                    font: this.currentFont
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'gel_project.json';
+                a.click();
+            }
+
+            loadProject(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (data.labels) {
+                            this.labels = data.labels;
+                            document.getElementById('nextNumber').value = data.nextNum || 1;
+                            if (data.fontSize) {
+                                this.fontSize = data.fontSize;
+                                document.getElementById('fontSize').value = data.fontSize;
+                                document.getElementById('fontSizeDisplay').textContent = data.fontSize + 'px';
+                            }
+                            if (data.font) this.setFont(data.font);
+                            
+                            this.saveState();
+                            this.render();
+                            alert(this.translations[this.currentLang].projectLoaded);
+                        }
+                    } catch (err) {
+                        alert(this.translations[this.currentLang].fileError);
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            }
+
+            exportImage() {
+                if (!this.img) return;
+                const link = document.createElement('a');
+                link.download = 'labeled_gel.png';
+                link.href = this.canvas.toDataURL('image/png');
+                link.click();
+            }
+        }
+
+        // Initialize App
+        const app = new GelLabeler();
+    </script>
+</body>
+</html>
