@@ -156,6 +156,24 @@
                 </div>
             </div>
 
+            <!-- Reference Section -->
+            <div class="p-4 border-b border-slate-100">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3" data-i18n="refTitle">参考 Ladder</h3>
+                <button onclick="document.getElementById('refInput').click()" class="w-full flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span data-i18n="loadRef">加载 Ladder 图片</span>
+                </button>
+                <input type="file" id="refInput" accept="image/*" class="hidden">
+                
+                <div id="refControls" class="hidden mt-3 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-500" data-i18n="refOpacity">透明度</span>
+                        <input type="range" id="refOpacity" min="10" max="100" value="90" class="w-20 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+                    <button onclick="app.toggleRefVisibility()" class="w-full text-xs text-blue-600 hover:text-blue-700" id="btn-toggle-ref" data-i18n="hideRef">隐藏参考图</button>
+                </div>
+            </div>
+
             <!-- Settings Section -->
             <div class="p-4 space-y-5">
                 <!-- Zoom Control -->
@@ -167,7 +185,19 @@
                     <input type="range" id="zoomLevel" min="10" max="300" value="100" step="5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                 </div>
 
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider" data-i18n="styleSettings">样式设置</h3>
+                                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider" data-i18n="styleSettings">
+样式设置</h3>                                                                                                                       
+                
+                <!-- Label Type -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1.5" data-i18n="labelType">标记类型</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="app.setLabelType('number')" id="type-number" class="px-3 py-2 border rounded-md text-sm text-center transition-colors" data-i18n="typeNumber">数字</button>
+                        <button onclick="app.setLabelType('letter')" id="type-letter" class="px-3 py-2 border rounded-md text-sm text-center transition-colors" data-i18n="typeLetter">字母</button>
+                    </div>
+                </div>
+
+                <!-- Next Number -->
                 
                 <!-- Next Number -->
                 <div>
@@ -236,6 +266,14 @@
 
                 <!-- Canvas -->
                 <canvas id="mainCanvas" class="hidden bg-white"></canvas>
+
+                <!-- Reference Image Floating Panel -->
+                <div id="refPanel" class="hidden absolute top-10 right-10 w-48 bg-white p-2 rounded-lg shadow-xl border border-slate-200 cursor-move z-40 group">
+                    <div class="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md border border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-red-50" onclick="app.closeRef()">
+                        <svg class="w-4 h-4 text-slate-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                    <img id="refImage" src="" class="w-full h-auto rounded select-none pointer-events-none">
+                </div>
             </div>
 
             <!-- Status Bar -->
@@ -286,6 +324,7 @@
                 this.currentColor = '#ffffff'; // Default White
                 this.currentFont = 'hand'; // hand, std
                 this.fontSize = 16;
+                this.labelType = 'number'; // number, letter
                 this.currentLang = 'zh'; // zh, en
                 
                 // Interaction State
@@ -311,6 +350,9 @@
                         shortcut: "快捷键",
                         zoom: "视图缩放",
                         styleSettings: "样式设置",
+                        labelType: "标记类型",
+                        typeNumber: "数字 (1, 2...)",
+                        typeLetter: "字母 (A, B...)",
                         startNumber: "起始编号",
                         fontStyle: "字体风格",
                         fontHand: "手写体",
@@ -319,7 +361,7 @@
                         fontSize: "字体大小",
                         clearAll: "清空所有标记",
                         emptyTitle: "开始您的标记工作",
-                        emptyDesc: "请上传电泳胶图片，支持 JPG, PNG 格式",
+                        emptyDesc: "请上传电泳胶图片，支持 JPG, PNG 格式，或直接粘贴 (Ctrl+V)",
                         selectImage: "选择图片文件",
                         statusReady: "就绪",
                         rowModalTitle: "批量生成行标记",
@@ -331,7 +373,12 @@
                         currentMode: "当前模式",
                         confirmClear: "确定要清空所有标记吗？此操作可撤销。",
                         projectLoaded: "项目数据已加载。请确保已加载对应的底图。",
-                        fileError: "文件格式错误"
+                        fileError: "文件格式错误",
+                        refTitle: "参考 Ladder",
+                        loadRef: "加载 Ladder 图片",
+                        refOpacity: "透明度",
+                        hideRef: "隐藏参考图",
+                        showRef: "显示参考图"
                     },
                     en: {
                         openImage: "Open Image",
@@ -348,6 +395,9 @@
                         shortcut: "Shortcut",
                         zoom: "Zoom",
                         styleSettings: "Style Settings",
+                        labelType: "Label Type",
+                        typeNumber: "Number (1, 2...)",
+                        typeLetter: "Letter (A, B...)",
                         startNumber: "Start Number",
                         fontStyle: "Font Style",
                         fontHand: "Handwritten",
@@ -356,7 +406,7 @@
                         fontSize: "Font Size",
                         clearAll: "Clear All Labels",
                         emptyTitle: "Start Labeling",
-                        emptyDesc: "Upload gel image (JPG, PNG)",
+                        emptyDesc: "Upload gel image (JPG, PNG) or Paste (Ctrl+V)",
                         selectImage: "Select Image",
                         statusReady: "Ready",
                         rowModalTitle: "Batch Row Generation",
@@ -368,7 +418,12 @@
                         currentMode: "Current Mode",
                         confirmClear: "Are you sure you want to clear all labels? This can be undone.",
                         projectLoaded: "Project loaded. Please ensure the correct base image is loaded.",
-                        fileError: "File format error"
+                        fileError: "File format error",
+                        refTitle: "Reference Ladder",
+                        loadRef: "Load Ladder Image",
+                        refOpacity: "Opacity",
+                        hideRef: "Hide Reference",
+                        showRef: "Show Reference"
                     }
                 };
 
@@ -379,6 +434,13 @@
                 this.emptyState = document.getElementById('emptyState');
                 this.statusText = document.getElementById('statusText');
                 this.coordsText = document.getElementById('coordsText');
+                
+                // Reference State
+                this.refImg = null;
+                this.isRefVisible = false;
+                this.refPanel = document.getElementById('refPanel');
+                this.refImage = document.getElementById('refImage');
+                this.refControls = document.getElementById('refControls');
                 
                 this.init();
             }
@@ -416,6 +478,16 @@
                 // File Inputs
                 document.getElementById('imageInput').addEventListener('change', (e) => this.handleImageUpload(e));
                 document.getElementById('projectInput').addEventListener('change', (e) => this.loadProject(e));
+                document.getElementById('refInput').addEventListener('change', (e) => this.handleRefUpload(e));
+                
+                // Paste Support
+                document.addEventListener('paste', (e) => this.handlePaste(e));
+
+                // Reference Controls
+                document.getElementById('refOpacity').addEventListener('input', (e) => {
+                    this.refPanel.style.opacity = e.target.value / 100;
+                });
+                this.initRefDragging();
                 
                 // Zoom
                 document.getElementById('zoomLevel').addEventListener('input', (e) => {
@@ -429,7 +501,7 @@
                 
                 // Settings Inputs
                 document.getElementById('nextNumber').addEventListener('change', (e) => {
-                    if(e.target.value < 1) e.target.value = 1;
+                    if (this.labelType === 'number' && e.target.value < 1) e.target.value = 1;
                 });
                 
                 document.getElementById('fontSize').addEventListener('input', (e) => {
@@ -469,6 +541,49 @@
             }
 
             // --- File Handling ---
+
+            handlePaste(e) {
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                for (let index in items) {
+                    const item = items[index];
+                    if (item.kind === 'file' && item.type.includes('image/')) {
+                        const blob = item.getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            if (!this.img) {
+                                // Load as Main Image
+                                this.img = new Image();
+                                this.img.onload = () => {
+                                    this.canvas.width = this.img.width;
+                                    this.canvas.height = this.img.height;
+                                    this.canvas.classList.remove('hidden');
+                                    this.emptyState.classList.add('hidden');
+                                    
+                                    // Reset state for new image
+                                    this.labels = [];
+                                    this.history = [];
+                                    this.historyIndex = -1;
+                                    this.saveState(); // Initial state
+                                    
+                                    this.fitCanvas();
+                                    this.render();
+                                    const t = this.translations[this.currentLang];
+                                    this.statusText.textContent = `${t.imageLoaded}: ${this.img.width} x ${this.img.height}`;
+                                };
+                                this.img.src = event.target.result;
+                            } else {
+                                // Load as Reference Ladder
+                                this.refImage.src = event.target.result;
+                                this.refPanel.classList.remove('hidden');
+                                this.refControls.classList.remove('hidden');
+                                this.isRefVisible = true;
+                                this.updateRefBtnText();
+                            }
+                        };
+                        reader.readAsDataURL(blob);
+                    }
+                }
+            }
 
             handleImageUpload(e) {
                 const file = e.target.files[0];
@@ -524,6 +639,93 @@
                 if (this.canvas && this.img) {
                     this.canvas.style.width = (this.img.width * level / 100) + 'px';
                     this.canvas.style.height = (this.img.height * level / 100) + 'px';
+                }
+            }
+
+            // --- Reference Ladder ---
+
+            handleRefUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    this.refImage.src = event.target.result;
+                    this.refPanel.classList.remove('hidden');
+                    this.refControls.classList.remove('hidden');
+                    this.isRefVisible = true;
+                    this.updateRefBtnText();
+                };
+                reader.readAsDataURL(file);
+                e.target.value = '';
+            }
+
+            toggleRefVisibility() {
+                this.isRefVisible = !this.isRefVisible;
+                if (this.isRefVisible) {
+                    this.refPanel.classList.remove('hidden');
+                } else {
+                    this.refPanel.classList.add('hidden');
+                }
+                this.updateRefBtnText();
+            }
+
+            closeRef() {
+                this.isRefVisible = false;
+                this.refPanel.classList.add('hidden');
+                this.refControls.classList.add('hidden');
+                this.refImage.src = '';
+            }
+
+            updateRefBtnText() {
+                const btn = document.getElementById('btn-toggle-ref');
+                const t = this.translations[this.currentLang];
+                btn.textContent = this.isRefVisible ? t.hideRef : t.showRef;
+            }
+
+            initRefDragging() {
+                let isDragging = false;
+                let currentX;
+                let currentY;
+                let initialX;
+                let initialY;
+                let xOffset = 0;
+                let yOffset = 0;
+
+                this.refPanel.addEventListener("mousedown", dragStart);
+                window.addEventListener("mouseup", dragEnd);
+                window.addEventListener("mousemove", drag);
+
+                const el = this.refPanel;
+
+                function dragStart(e) {
+                    if (e.target.tagName === 'IMG' || e.target.closest('svg')) return; // Allow clicking close button
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                    if (e.target === el) {
+                        isDragging = true;
+                    }
+                }
+
+                function dragEnd(e) {
+                    initialX = currentX;
+                    initialY = currentY;
+                    isDragging = false;
+                }
+
+                function drag(e) {
+                    if (isDragging) {
+                        e.preventDefault();
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                        xOffset = currentX;
+                        yOffset = currentY;
+                        setTranslate(currentX, currentY, el);
+                    }
+                }
+
+                function setTranslate(xPos, yPos, el) {
+                    el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
                 }
             }
 
@@ -668,7 +870,11 @@
 
                 if (text === null) {
                     // Auto increment
-                    input.value = parseInt(val) + 1;
+                    if (this.labelType === 'number') {
+                        input.value = parseInt(val) + 1;
+                    } else {
+                        input.value = this.nextLetter(val);
+                    }
                 }
                 
                 this.saveState();
@@ -694,7 +900,10 @@
                 const modal = document.getElementById('rowModal');
                 const input = document.getElementById('nextNumber');
                 
-                document.getElementById('rowModalStart').value = input.value;
+                const modalStartInput = document.getElementById('rowModalStart');
+                modalStartInput.type = this.labelType === 'number' ? 'number' : 'text';
+                modalStartInput.value = input.value;
+                
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
                 document.getElementById('rowModalCount').focus();
@@ -702,23 +911,30 @@
 
             confirmRow() {
                 const count = parseInt(document.getElementById('rowModalCount').value);
-                const startNum = parseInt(document.getElementById('rowModalStart').value);
+                const startInput = document.getElementById('rowModalStart').value;
                 const { start, end } = this.pendingRow;
 
                 if (count > 1) {
                     const dx = (end.x - start.x) / (count - 1);
                     const dy = (end.y - start.y) / (count - 1);
 
+                    let currentVal = startInput;
                     for (let i = 0; i < count; i++) {
                         this.labels.push({
                             x: start.x + (dx * i),
                             y: start.y + (dy * i),
-                            text: (startNum + i).toString(),
+                            text: currentVal.toString(),
                             color: this.currentColor
                         });
+                        
+                        if (this.labelType === 'number') {
+                            currentVal = parseInt(currentVal) + 1;
+                        } else {
+                            currentVal = this.nextLetter(currentVal);
+                        }
                     }
                     
-                    document.getElementById('nextNumber').value = startNum + count;
+                    document.getElementById('nextNumber').value = currentVal;
                     this.saveState();
                     this.render();
                 }
@@ -763,6 +979,40 @@
                 this.render();
             }
 
+            setLabelType(type) {
+                this.labelType = type;
+                const input = document.getElementById('nextNumber');
+                if (type === 'number') {
+                    input.type = 'number';
+                    input.value = '1';
+                } else {
+                    input.type = 'text';
+                    input.value = 'A';
+                }
+                this.updateUI();
+            }
+
+            nextLetter(str) {
+                let carry = 1;
+                let res = "";
+                for (let i = str.length - 1; i >= 0; i--) {
+                    let charCode = str.charCodeAt(i);
+                    charCode += carry;
+                    if (charCode > 90) { // 'Z'
+                        charCode = 65; // 'A'
+                        res = String.fromCharCode(charCode) + res;
+                        carry = 1;
+                    } else {
+                        res = String.fromCharCode(charCode) + res;
+                        carry = 0;
+                    }
+                }
+                if (carry) {
+                    res = "A" + res;
+                }
+                return res;
+            }
+
             clearAll() {
                 const t = this.translations[this.currentLang];
                 if (confirm(t.confirmClear)) {
@@ -778,6 +1028,10 @@
                 document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active', 'bg-blue-50', 'border-blue-500'));
                 const activeToolBtn = document.getElementById('tool-' + this.currentTool);
                 if (activeToolBtn) activeToolBtn.classList.add('active');
+
+                // Label Type
+                document.getElementById('type-number').className = `px-3 py-2 border rounded-md text-sm text-center transition-colors ${this.labelType === 'number' ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-slate-50 text-slate-700'}`;
+                document.getElementById('type-letter').className = `px-3 py-2 border rounded-md text-sm text-center transition-colors ${this.labelType === 'letter' ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-slate-50 text-slate-700'}`;
 
                 // Colors
                 document.querySelectorAll('.color-btn').forEach(btn => {
@@ -846,7 +1100,8 @@
                     labels: this.labels,
                     nextNum: document.getElementById('nextNumber').value,
                     fontSize: this.fontSize,
-                    font: this.currentFont
+                    font: this.currentFont,
+                    labelType: this.labelType
                 };
                 const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
                 const url = URL.createObjectURL(blob);
@@ -866,7 +1121,9 @@
                         const data = JSON.parse(ev.target.result);
                         if (data.labels) {
                             this.labels = data.labels;
-                            document.getElementById('nextNumber').value = data.nextNum || 1;
+                            if (data.labelType) this.setLabelType(data.labelType);
+                            document.getElementById('nextNumber').value = data.nextNum || (this.labelType === 'number' ? 1 : 'A');
+
                             if (data.fontSize) {
                                 this.fontSize = data.fontSize;
                                 document.getElementById('fontSize').value = data.fontSize;
