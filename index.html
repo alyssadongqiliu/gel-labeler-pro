@@ -14,6 +14,7 @@
 
     <title>Gel Labeler Pro | 电泳胶孔标记工具专业版</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/utif@2.0.1/UTIF.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Patrick+Hand&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -99,7 +100,7 @@
         </div>
 
         <!-- Hidden Inputs -->
-        <input type="file" id="imageInput" accept="image/*" class="hidden">
+        <input type="file" id="imageInput" accept="image/*,.tif,.tiff" class="hidden">
         <input type="file" id="projectInput" accept=".json" class="hidden">
     </header>
 
@@ -172,7 +173,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     <span data-i18n="loadRef">加载 Ladder 图片</span>
                 </button>
-                <input type="file" id="refInput" accept="image/*" class="hidden">
+                <input type="file" id="refInput" accept="image/*,.tif,.tiff" class="hidden">
                 
                 <div id="refControls" class="hidden mt-3 space-y-2">
                     <div class="flex items-center justify-between">
@@ -370,7 +371,7 @@
                         fontSize: "字体大小",
                         clearAll: "清空所有标记",
                         emptyTitle: "开始您的标记工作",
-                        emptyDesc: "请上传电泳胶图片，支持 JPG, PNG 格式，或直接粘贴 (Ctrl+V)",
+                        emptyDesc: "请上传电泳胶图片，支持 JPG, PNG, TIF 格式，或直接粘贴 (Ctrl+V)",
                         selectImage: "选择图片文件",
                         statusReady: "就绪",
                         rowModalTitle: "批量生成行标记",
@@ -415,7 +416,7 @@
                         fontSize: "Font Size",
                         clearAll: "Clear All Labels",
                         emptyTitle: "Start Labeling",
-                        emptyDesc: "Upload gel image (JPG, PNG) or Paste (Ctrl+V)",
+                        emptyDesc: "Upload gel image (JPG, PNG, TIF) or Paste (Ctrl+V)",
                         selectImage: "Select Image",
                         statusReady: "Ready",
                         rowModalTitle: "Batch Row Generation",
@@ -551,45 +552,35 @@
 
             // --- File Handling ---
 
+            processTiff(buffer) {
+                try {
+                    const ifds = UTIF.decode(buffer);
+                    UTIF.decodeImage(buffer, ifds[0]);
+                    const rgba = UTIF.toRGBA8(ifds[0]);
+                    const width = ifds[0].width;
+                    const height = ifds[0].height;
+                    const canvas = document.createElement("canvas");
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext("2d");
+                    const imgData = ctx.createImageData(width, height);
+                    imgData.data.set(rgba);
+                    ctx.putImageData(imgData, 0, 0);
+                    return canvas.toDataURL();
+                } catch (e) {
+                    console.error("TIFF decode error:", e);
+                    alert("TIFF decode failed. Please try another file.");
+                    return null;
+                }
+            }
+
             handlePaste(e) {
                 const items = (e.clipboardData || e.originalEvent.clipboardData).items;
                 for (let index in items) {
                     const item = items[index];
                     if (item.kind === 'file' && item.type.includes('image/')) {
                         const blob = item.getAsFile();
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            if (!this.img) {
-                                // Load as Main Image
-                                this.img = new Image();
-                                this.img.onload = () => {
-                                    this.canvas.width = this.img.width;
-                                    this.canvas.height = this.img.height;
-                                    this.canvas.classList.remove('hidden');
-                                    this.emptyState.classList.add('hidden');
-                                    
-                                    // Reset state for new image
-                                    this.labels = [];
-                                    this.history = [];
-                                    this.historyIndex = -1;
-                                    this.saveState(); // Initial state
-                                    
-                                    this.fitCanvas();
-                                    this.render();
-                                    const t = this.translations[this.currentLang];
-                                    this.statusText.textContent = `${t.imageLoaded}: ${this.img.width} x ${this.img.height}`;
-                                };
-                                this.img.src = event.target.result;
-                            } else {
-                                // Load as Reference Ladder
-                                this.refImage.src = event.target.result;
-                                this.refPanel.classList.remove('hidden');
-                                this.refControls.classList.remove('hidden');
-                                this.isRefVisible = true;
-                                this.updateRefBtnText();
-                            }
-                        };
-                        reader.readAsDataURL(blob);
+                        this.loadFile(blob);
                     }
                 }
             }
@@ -597,9 +588,43 @@
             handleImageUpload(e) {
                 const file = e.target.files[0];
                 if (!file) return;
+                this.loadFile(file, true);
+                e.target.value = ''; // Reset input
+            }
 
-                const reader = new FileReader();
-                reader.onload = (event) => {
+            handleRefUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                this.loadFile(file, false);
+                e.target.value = '';
+            }
+
+            loadFile(file, isMain = null) {
+                const isTiff = file.name.toLowerCase().endsWith('.tif') || file.name.toLowerCase().endsWith('.tiff');
+                
+                if (isTiff) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const dataUrl = this.processTiff(event.target.result);
+                        if (dataUrl) this.loadImageFromUrl(dataUrl, isMain);
+                    };
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        this.loadImageFromUrl(event.target.result, isMain);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            loadImageFromUrl(url, isMain = null) {
+                // Determine target: if isMain is explicit, use it. 
+                // If null, check if main img exists. If no main img, load as main. Else load as ref.
+                const targetIsMain = isMain !== null ? isMain : (!this.img);
+
+                if (targetIsMain) {
+                    // Load as Main Image
                     this.img = new Image();
                     this.img.onload = () => {
                         this.canvas.width = this.img.width;
@@ -618,10 +643,15 @@
                         const t = this.translations[this.currentLang];
                         this.statusText.textContent = `${t.imageLoaded}: ${this.img.width} x ${this.img.height}`;
                     };
-                    this.img.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-                e.target.value = ''; // Reset input
+                    this.img.src = url;
+                } else {
+                    // Load as Reference Ladder
+                    this.refImage.src = url;
+                    this.refPanel.classList.remove('hidden');
+                    this.refControls.classList.remove('hidden');
+                    this.isRefVisible = true;
+                    this.updateRefBtnText();
+                }
             }
 
             fitCanvas() {
