@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9XMN65S52K"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-9XMN65S52K');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
@@ -154,13 +163,23 @@
                         </div>
                     </button>
 
+                    <button onclick="app.setTool('select')" id="tool-select" class="tool-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-slate-50 text-left group">
+                        <span class="bg-purple-50 text-purple-600 p-1.5 rounded group-hover:bg-purple-100 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                        </span>
+                        <div>
+                            <div class="text-sm font-medium text-slate-700 group-hover:text-slate-900" data-i18n="toolSelect">框选编辑</div>
+                            <div class="text-[10px] text-slate-400"><span data-i18n="shortcut">快捷键</span>: 4</div>
+                        </div>
+                    </button>
+
                     <button onclick="app.setTool('delete')" id="tool-delete" class="tool-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-slate-50 text-left group">
                         <span class="bg-red-50 text-red-600 p-1.5 rounded group-hover:bg-red-100 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </span>
                         <div>
                             <div class="text-sm font-medium text-slate-700 group-hover:text-slate-900" data-i18n="toolDelete">删除标记</div>
-                            <div class="text-[10px] text-slate-400"><span data-i18n="shortcut">快捷键</span>: 4</div>
+                            <div class="text-[10px] text-slate-400"><span data-i18n="shortcut">快捷键</span>: 5</div>
                         </div>
                     </button>
                 </div>
@@ -172,6 +191,10 @@
                 <button onclick="document.getElementById('refInput').click()" class="w-full flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     <span data-i18n="loadRef">加载 Ladder 图片</span>
+                </button>
+                <button onclick="app.loadDefaultLadder()" class="w-full flex items-center gap-2 px-3 py-2 mt-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    <span data-i18n="loadDefaultRef">加载标准 Ladder</span>
                 </button>
                 <input type="file" id="refInput" accept="image/*,.tif,.tiff" class="hidden">
                 
@@ -201,22 +224,21 @@
                 <!-- Label Type -->
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1.5" data-i18n="labelType">标记类型</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="app.setLabelType('number')" id="type-number" class="px-3 py-2 border rounded-md text-sm text-center transition-colors" data-i18n="typeNumber">数字</button>
-                        <button onclick="app.setLabelType('letter')" id="type-letter" class="px-3 py-2 border rounded-md text-sm text-center transition-colors" data-i18n="typeLetter">字母</button>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="app.setLabelType('number')" id="type-number" class="px-2 py-2 border rounded-md text-xs text-center transition-colors" data-i18n="typeNumber">数字</button>
+                        <button onclick="app.setLabelType('letter')" id="type-letter" class="px-2 py-2 border rounded-md text-xs text-center transition-colors" data-i18n="typeLetter">字母</button>
+                        <button onclick="app.setLabelType('custom')" id="type-custom" class="px-2 py-2 border rounded-md text-xs text-center transition-colors" data-i18n="typeCustom">自定义</button>
                     </div>
                 </div>
 
-                <!-- Next Number -->
-                
-                <!-- Next Number -->
+                <!-- Next Number / Custom Text -->
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1.5" data-i18n="startNumber">起始编号</label>
                     <div class="flex items-center">
                         <input type="number" id="nextNumber" value="1" min="1" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border">
+                        <input type="text" id="customTextInput" class="hidden w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border" placeholder="grd-4">
                     </div>
                 </div>
-
                 <!-- Font Style -->
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1.5" data-i18n="fontStyle">字体风格</label>
@@ -330,17 +352,22 @@
                 this.zoomLevel = 100;
                 
                 // Settings
-                this.currentTool = 'manual'; // manual, row, move, delete
+                this.currentTool = 'manual'; // manual, row, move, delete, select
                 this.currentColor = '#ffffff'; // Default White
                 this.currentFont = 'hand'; // hand, std
-                this.fontSize = 16;
-                this.labelType = 'number'; // number, letter
-                this.currentLang = 'zh'; // zh, en
+                this.fontSize = 20;
+                this.labelType = 'number'; // number, letter, custom
+                this.customText = '';
+                this.currentLang = 'en'; // zh, en
                 
                 // Interaction State
                 this.isDragging = false;
                 this.draggedIndex = -1;
                 this.rowStart = null;
+                this.selectionStart = null;
+                this.selectedIndices = new Set();
+                this.isSelecting = false;
+                this.clipboard = []; // For copy/paste
                 this.mousePos = { x: 0, y: 0 };
 
                 // Translations
@@ -356,6 +383,7 @@
                         toolManual: "单点标记",
                         toolRow: "批量行生成",
                         toolMove: "移动调整",
+                        toolSelect: "框选编辑",
                         toolDelete: "删除标记",
                         shortcut: "快捷键",
                         zoom: "视图缩放",
@@ -363,6 +391,8 @@
                         labelType: "标记类型",
                         typeNumber: "数字 (1, 2...)",
                         typeLetter: "字母 (A, B...)",
+                        typeCustom: "自定义文本",
+                        customPlaceholder: "输入文本 (如 grd-4)",
                         startNumber: "起始编号",
                         fontStyle: "字体风格",
                         fontHand: "手写体",
@@ -385,10 +415,12 @@
                         projectLoaded: "项目数据已加载。请确保已加载对应的底图。",
                         fileError: "文件格式错误",
                         refTitle: "参考 Ladder",
-                        loadRef: "加载 Ladder 图片",
+                        loadRef: "加载自定义 Ladder",
+                        loadDefaultRef: "加载标准 Ladder",
                         refOpacity: "透明度",
                         hideRef: "隐藏参考图",
-                        showRef: "显示参考图"
+                        showRef: "显示参考图",
+                        selectionTip: "已选中 {n} 个标记。可拖动、改色、复制(Ctrl+C)或删除(Del)。"
                     },
                     en: {
                         openImage: "Open Image",
@@ -401,6 +433,7 @@
                         toolManual: "Manual Label",
                         toolRow: "Batch Row",
                         toolMove: "Move / Adjust",
+                        toolSelect: "Select / Edit",
                         toolDelete: "Delete Label",
                         shortcut: "Shortcut",
                         zoom: "Zoom",
@@ -408,6 +441,8 @@
                         labelType: "Label Type",
                         typeNumber: "Number (1, 2...)",
                         typeLetter: "Letter (A, B...)",
+                        typeCustom: "Custom Text",
+                        customPlaceholder: "Enter text (e.g. grd-4)",
                         startNumber: "Start Number",
                         fontStyle: "Font Style",
                         fontHand: "Handwritten",
@@ -430,10 +465,12 @@
                         projectLoaded: "Project loaded. Please ensure the correct base image is loaded.",
                         fileError: "File format error",
                         refTitle: "Reference Ladder",
-                        loadRef: "Load Ladder Image",
+                        loadRef: "Load Custom Ladder",
+                        loadDefaultRef: "Load Standard Ladder",
                         refOpacity: "Opacity",
                         hideRef: "Hide Reference",
-                        showRef: "Show Reference"
+                        showRef: "Show Reference",
+                        selectionTip: "{n} labels selected. Drag, recolor, copy(Ctrl+C) or delete(Del)."
                     }
                 };
 
@@ -470,7 +507,6 @@
             updateLanguage() {
                 const t = this.translations[this.currentLang];
                 document.getElementById('lang-toggle-text').textContent = this.currentLang === 'zh' ? 'EN' : '中文';
-                
                 document.querySelectorAll('[data-i18n]').forEach(el => {
                     const key = el.getAttribute('data-i18n');
                     if (t[key]) el.textContent = t[key];
@@ -527,10 +563,39 @@
                             this.rowStart = null;
                             this.render();
                         }
+                        if (this.currentTool === 'select') {
+                            this.selectedIndices.clear();
+                            this.isSelecting = false;
+                            this.render();
+                            this.updateStatusForSelection();
+                        }
                         return;
                     }
 
                     if (e.target.tagName === 'INPUT') return;
+                    
+                    // Copy / Paste / Delete
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                        e.preventDefault();
+                        this.copySelection();
+                    } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+                        e.preventDefault();
+                        if (this.clipboard.length > 0) {
+                            this.pasteSelection();
+                        } else {
+                            // Allow default paste for image pasting if clipboard is empty of labels
+                            // But we need to check if it's an image paste event which is handled by 'paste' event
+                            // So we don't prevent default here if we want image paste to work?
+                            // Actually image paste is handled by 'paste' event listener, which fires regardless of this.
+                            // But if we preventDefault here, 'paste' might not fire? 
+                            // 'paste' event is separate.
+                        }
+                    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                        if (this.selectedIndices.size > 0) {
+                            e.preventDefault();
+                            this.deleteSelection();
+                        }
+                    }
                     
                     if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
                         e.preventDefault();
@@ -545,7 +610,8 @@
                         case '1': this.setTool('manual'); break;
                         case '2': this.setTool('row'); break;
                         case '3': this.setTool('move'); break;
-                        case '4': this.setTool('delete'); break;
+                        case '4': this.setTool('select'); break;
+                        case '5': this.setTool('delete'); break;
                     }
                 });
             }
@@ -601,7 +667,6 @@
 
             loadFile(file, isMain = null) {
                 const isTiff = file.name.toLowerCase().endsWith('.tif') || file.name.toLowerCase().endsWith('.tiff');
-                
                 if (isTiff) {
                     const reader = new FileReader();
                     reader.onload = (event) => {
@@ -681,23 +746,12 @@
                 }
             }
 
-            // --- Reference Ladder ---
-
-            handleRefUpload(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    this.refImage.src = event.target.result;
-                    this.refPanel.classList.remove('hidden');
-                    this.refControls.classList.remove('hidden');
-                    this.isRefVisible = true;
-                    this.updateRefBtnText();
-                };
-                reader.readAsDataURL(file);
-                e.target.value = '';
+            loadDefaultLadder() {
+                const url = './ladder.png';
+                this.loadImageFromUrl(url, false);
             }
+
+            // --- Reference Ladder ---
 
             toggleRefVisibility() {
                 this.isRefVisible = !this.isRefVisible;
@@ -786,10 +840,23 @@
                 this.ctx.textBaseline = 'middle';
 
                 // Draw Labels
-                this.labels.forEach(l => {
+                this.labels.forEach((l, index) => {
                     const x = l.x;
                     const y = l.y;
                     
+                    // Highlight selected
+                    if (this.selectedIndices.has(index)) {
+                        this.ctx.save();
+                        this.ctx.beginPath();
+                        this.ctx.arc(x, y, this.fontSize, 0, Math.PI * 2);
+                        this.ctx.fillStyle = 'rgba(59, 130, 246, 0.3)'; // Blue highlight
+                        this.ctx.fill();
+                        this.ctx.strokeStyle = '#2563eb';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.stroke();
+                        this.ctx.restore();
+                    }
+
                     // Shadow/Glow for visibility
                     this.ctx.shadowColor = "rgba(0,0,0,0.8)";
                     this.ctx.shadowBlur = 4;
@@ -825,6 +892,21 @@
                     this.ctx.arc(this.rowStart.x, this.rowStart.y, 4, 0, Math.PI * 2);
                     this.ctx.fillStyle = this.currentColor;
                     this.ctx.fill();
+                }
+
+                // Draw Selection Box
+                if (this.isSelecting && this.selectionStart) {
+                    const w = this.mousePos.x - this.selectionStart.x;
+                    const h = this.mousePos.y - this.selectionStart.y;
+                    
+                    this.ctx.save();
+                    this.ctx.strokeStyle = '#2563eb';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.setLineDash([4, 4]);
+                    this.ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
+                    this.ctx.fillRect(this.selectionStart.x, this.selectionStart.y, w, h);
+                    this.ctx.strokeRect(this.selectionStart.x, this.selectionStart.y, w, h);
+                    this.ctx.restore();
                 }
             }
 
@@ -868,25 +950,86 @@
                         this.saveState();
                         this.render();
                     }
+                } else if (this.currentTool === 'select') {
+                    const idx = this.findLabelAt(pos);
+                    if (idx !== -1) {
+                        // Clicked on a label
+                        if (!e.shiftKey && !this.selectedIndices.has(idx)) {
+                            this.selectedIndices.clear();
+                        }
+                        this.selectedIndices.add(idx);
+                        this.isDragging = true;
+                        this.draggedIndex = idx; // Use this as reference for moving group
+                        this.lastMousePos = pos;
+                    } else {
+                        // Clicked on empty space - start selection box
+                        if (!e.shiftKey) {
+                            this.selectedIndices.clear();
+                        }
+                        this.isSelecting = true;
+                        this.selectionStart = pos;
+                    }
+                    this.render();
+                    this.updateStatusForSelection();
                 }
             }
 
             handleMouseMove(e) {
                 if (!this.img) return;
-                this.mousePos = this.getMousePos(e);
+                const newPos = this.getMousePos(e);
+                this.mousePos = newPos;
                 this.coordsText.textContent = `X: ${Math.round(this.mousePos.x)}, Y: ${Math.round(this.mousePos.y)}`;
-
+                
                 if (this.currentTool === 'move' && this.isDragging && this.draggedIndex !== -1) {
                     this.labels[this.draggedIndex].x = this.mousePos.x;
                     this.labels[this.draggedIndex].y = this.mousePos.y;
                     this.render();
                 } else if (this.currentTool === 'row' && this.rowStart) {
                     this.render();
+                } else if (this.currentTool === 'select') {
+                    if (this.isDragging && this.selectedIndices.size > 0) {
+                        // Move all selected labels
+                        const dx = newPos.x - this.lastMousePos.x;
+                        const dy = newPos.y - this.lastMousePos.y;
+                        
+                        this.selectedIndices.forEach(idx => {
+                            this.labels[idx].x += dx;
+                            this.labels[idx].y += dy;
+                        });
+                        
+                        this.lastMousePos = newPos;
+                        this.render();
+                    } else if (this.isSelecting) {
+                        this.render(); // Draw selection box
+                    }
                 }
             }
 
             handleMouseUp(e) {
-                if (this.isDragging) {
+                if (this.currentTool === 'select') {
+                    if (this.isSelecting && this.selectionStart) {
+                        // Finalize selection box
+                        const x1 = Math.min(this.selectionStart.x, this.mousePos.x);
+                        const y1 = Math.min(this.selectionStart.y, this.mousePos.y);
+                        const x2 = Math.max(this.selectionStart.x, this.mousePos.x);
+                        const y2 = Math.max(this.selectionStart.y, this.mousePos.y);
+                        
+                        this.labels.forEach((l, i) => {
+                            if (l.x >= x1 && l.x <= x2 && l.y >= y1 && l.y <= y2) {
+                                this.selectedIndices.add(i);
+                            }
+                        });
+                        
+                        this.isSelecting = false;
+                        this.selectionStart = null;
+                        this.render();
+                        this.updateStatusForSelection();
+                    } else if (this.isDragging) {
+                        this.isDragging = false;
+                        this.draggedIndex = -1;
+                        this.saveState();
+                    }
+                } else if (this.isDragging) {
                     this.isDragging = false;
                     this.draggedIndex = -1;
                     this.canvas.style.cursor = 'crosshair';
@@ -894,11 +1037,29 @@
                 }
             }
 
+            updateStatusForSelection() {
+                if (this.selectedIndices.size > 0) {
+                    const t = this.translations[this.currentLang];
+                    this.statusText.textContent = t.selectionTip.replace('{n}', this.selectedIndices.size);
+                } else {
+                    const t = this.translations[this.currentLang];
+                    this.statusText.textContent = `${t.currentMode}: ${this.getToolName(this.currentTool)}`;
+                }
+            }
+
             // --- Core Actions ---
 
             addLabel(x, y, text = null) {
-                const input = document.getElementById('nextNumber');
-                const val = text !== null ? text : input.value;
+                let val;
+                if (text !== null) {
+                    val = text;
+                } else {
+                    if (this.labelType === 'custom') {
+                        val = document.getElementById('customTextInput').value || 'Label';
+                    } else {
+                        val = document.getElementById('nextNumber').value;
+                    }
+                }
                 
                 this.labels.push({
                     x: x,
@@ -910,10 +1071,11 @@
                 if (text === null) {
                     // Auto increment
                     if (this.labelType === 'number') {
-                        input.value = parseInt(val) + 1;
-                    } else {
-                        input.value = this.nextLetter(val);
+                        document.getElementById('nextNumber').value = parseInt(val) + 1;
+                    } else if (this.labelType === 'letter') {
+                        document.getElementById('nextNumber').value = this.nextLetter(val);
                     }
+                    // Custom text does not auto-increment
                 }
                 
                 this.saveState();
@@ -968,12 +1130,14 @@
                         
                         if (this.labelType === 'number') {
                             currentVal = parseInt(currentVal) + 1;
-                        } else {
+                        } else if (this.labelType === 'letter') {
                             currentVal = this.nextLetter(currentVal);
                         }
                     }
                     
-                    document.getElementById('nextNumber').value = currentVal;
+                    if (this.labelType !== 'custom') {
+                        document.getElementById('nextNumber').value = currentVal;
+                    }
                     this.saveState();
                     this.render();
                 }
@@ -991,9 +1155,15 @@
             setTool(tool) {
                 this.currentTool = tool;
                 this.rowStart = null;
+                this.isSelecting = false;
+                this.selectionStart = null;
+                if (tool !== 'select') {
+                    this.selectedIndices.clear();
+                }
                 this.updateUI();
                 const t = this.translations[this.currentLang];
                 this.statusText.textContent = `${t.currentMode}: ${this.getToolName(tool)}`;
+                this.render();
             }
 
             getToolName(t) {
@@ -1001,7 +1171,8 @@
                     'manual': 'toolManual', 
                     'row': 'toolRow', 
                     'move': 'toolMove', 
-                    'delete': 'toolDelete' 
+                    'delete': 'toolDelete',
+                    'select': 'toolSelect'
                 };
                 const key = map[t];
                 return key ? this.translations[this.currentLang][key] : t;
@@ -1009,6 +1180,16 @@
 
             setColor(hex) {
                 this.currentColor = hex;
+                
+                // If items are selected, change their color
+                if (this.selectedIndices.size > 0) {
+                    this.selectedIndices.forEach(idx => {
+                        this.labels[idx].color = hex;
+                    });
+                    this.saveState();
+                    this.render();
+                }
+                
                 this.updateUI();
             }
 
@@ -1020,13 +1201,23 @@
 
             setLabelType(type) {
                 this.labelType = type;
-                const input = document.getElementById('nextNumber');
+                const numInput = document.getElementById('nextNumber');
+                const txtInput = document.getElementById('customTextInput');
+                
                 if (type === 'number') {
-                    input.type = 'number';
-                    input.value = '1';
+                    numInput.classList.remove('hidden');
+                    txtInput.classList.add('hidden');
+                    numInput.type = 'number';
+                    numInput.value = '1';
+                } else if (type === 'letter') {
+                    numInput.classList.remove('hidden');
+                    txtInput.classList.add('hidden');
+                    numInput.type = 'text';
+                    numInput.value = 'A';
                 } else {
-                    input.type = 'text';
-                    input.value = 'A';
+                    // Custom
+                    numInput.classList.add('hidden');
+                    txtInput.classList.remove('hidden');
                 }
                 this.updateUI();
             }
@@ -1056,6 +1247,7 @@
                 const t = this.translations[this.currentLang];
                 if (confirm(t.confirmClear)) {
                     this.labels = [];
+                    this.selectedIndices.clear();
                     document.getElementById('nextNumber').value = 1;
                     this.saveState();
                     this.render();
@@ -1069,9 +1261,10 @@
                 if (activeToolBtn) activeToolBtn.classList.add('active');
 
                 // Label Type
-                document.getElementById('type-number').className = `px-3 py-2 border rounded-md text-sm text-center transition-colors ${this.labelType === 'number' ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-slate-50 text-slate-700'}`;
-                document.getElementById('type-letter').className = `px-3 py-2 border rounded-md text-sm text-center transition-colors ${this.labelType === 'letter' ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-slate-50 text-slate-700'}`;
-
+                document.getElementById('type-number').className = `px-2 py-2 border rounded-md text-xs text-center transition-colors ${this.labelType === 'number' ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-slate-50 text-slate-700'}`;
+                document.getElementById('type-letter').className = `px-2 py-2 border rounded-md text-xs text-center transition-colors ${this.labelType === 'letter' ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-slate-50 text-slate-700'}`;
+                document.getElementById('type-custom').className = `px-2 py-2 border rounded-md text-xs text-center transition-colors ${this.labelType === 'custom' ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-slate-50 text-slate-700'}`;
+                
                 // Colors
                 document.querySelectorAll('.color-btn').forEach(btn => {
                     if (btn.dataset.color === this.currentColor) {
@@ -1121,6 +1314,7 @@
             restoreState(state) {
                 this.labels = JSON.parse(JSON.stringify(state.labels));
                 document.getElementById('nextNumber').value = state.nextNum;
+                this.selectedIndices.clear();
                 this.render();
                 this.updateUndoRedo();
             }
@@ -1128,6 +1322,58 @@
             updateUndoRedo() {
                 document.getElementById('btn-undo').disabled = this.historyIndex <= 0;
                 document.getElementById('btn-redo').disabled = this.historyIndex >= this.history.length - 1;
+            }
+
+            // --- Copy / Paste ---
+            
+            copySelection() {
+                if (this.selectedIndices.size === 0) return;
+                this.clipboard = [];
+                this.selectedIndices.forEach(idx => {
+                    this.clipboard.push(JSON.parse(JSON.stringify(this.labels[idx])));
+                });
+            }
+            
+            pasteSelection() {
+                if (this.clipboard.length === 0) return;
+                
+                // Deselect current
+                this.selectedIndices.clear();
+                
+                // Paste with offset
+                const offset = 20;
+                this.clipboard.forEach(l => {
+                    l.x += offset;
+                    l.y += offset;
+                    this.labels.push(l);
+                    this.selectedIndices.add(this.labels.length - 1);
+                });
+                
+                // Update clipboard to new positions for subsequent pastes
+                this.clipboard = JSON.parse(JSON.stringify(this.clipboard));
+                this.clipboard.forEach(l => {
+                    l.x += offset;
+                    l.y += offset;
+                });
+                
+                this.saveState();
+                this.render();
+                this.updateStatusForSelection();
+            }
+            
+            deleteSelection() {
+                if (this.selectedIndices.size === 0) return;
+                
+                // Sort indices descending to delete safely
+                const indices = Array.from(this.selectedIndices).sort((a, b) => b - a);
+                indices.forEach(idx => {
+                    this.labels.splice(idx, 1);
+                });
+                
+                this.selectedIndices.clear();
+                this.saveState();
+                this.render();
+                this.updateStatusForSelection();
             }
 
             // --- Import/Export ---
@@ -1162,7 +1408,7 @@
                             this.labels = data.labels;
                             if (data.labelType) this.setLabelType(data.labelType);
                             document.getElementById('nextNumber').value = data.nextNum || (this.labelType === 'number' ? 1 : 'A');
-
+                            
                             if (data.fontSize) {
                                 this.fontSize = data.fontSize;
                                 document.getElementById('fontSize').value = data.fontSize;
@@ -1190,7 +1436,6 @@
                 link.click();
             }
         }
-
         // Initialize App
         const app = new GelLabeler();
     </script>
